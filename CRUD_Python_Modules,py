@@ -1,0 +1,123 @@
+# Example Python Code to Insert a Document 
+
+from pymongo import MongoClient 
+from bson.objectid import ObjectId 
+
+class AnimalShelter(object): 
+    """ CRUD operations for Animal collection in MongoDB """ 
+
+    def __init__(self): 
+        # Initializing the MongoClient. This helps to access the MongoDB 
+        # databases and collections. This is hard-wired to use the aac 
+        # database, the animals collection, and the aac user. 
+        # 
+        # You must edit the password below for your environment. 
+        # 
+        # Connection Variables 
+        # 
+        USER = 'aacuser' 
+        PASS = 'remram2' 
+        HOST = 'localhost' 
+        PORT = 27017 
+        DB = 'aac' 
+        COL = 'animals' 
+        # 
+        # Initialize Connection 
+        # 
+        self.client = MongoClient('mongodb://%s:%s@%s:%d' % (USER,PASS,HOST,PORT)) 
+        self.database = self.client['%s' % (DB)] 
+        self.collection = self.database['%s' % (COL)] 
+
+    # Create a method to return the next available record number for use in the create method
+           
+    # Complete this create method to implement the C in CRUD. 
+    def create(self, data):
+        
+        """
+        method to insert next document into a MongoDB database
+        returns True if inserted, prints an exception if failed, else returns false
+        """
+        
+        if data is not None:
+            try:
+                self.collection.insert_one(data) # inserts document
+                return True
+            except Exception as e: # failed to insert document
+                print(f"Exception occurred while inserting the document!: {e}") # prints an exception
+            return False # returns false
+        else: 
+            raise Exception("Nothing to save, data parameter is empty") # exception, empty dictionary
+
+    # Create method to implement the R in CRUD.
+    def read_all(self, query):
+       
+        """
+        method to read document in MongoDB database
+        return result in list if query successful, else an empty list
+        """
+        if query is None:
+            raise Exception("Query unsuccessful, data paramater is empty") # exception, empty dictionary  
+        try:
+            #using MongoDB cursor and find() function
+            cursor = self.collection.find(query)
+            #list cursor queries for documents
+            documents = list(cursor)
+            #return list query (documents)
+            return documents
+        except Exception as e: # failed to find document
+            print(f"Exception occurred while finding documents!: {e}")
+            return []
+        
+    #create medthod to implement the U in CRUD.
+    def update(self, query, updateData):
+            
+        """
+        method to update an or multiple entry's data already in the MongoDB database
+        return the number of objects modified in the colletion
+        """
+        
+        if not query:
+            #raise exception if the data parameter is empty 
+            raise Exception("Query parameter is empty, nothing to update")
+            
+        if not updateData:
+            raise Exception("Update data is empty, nothing was updated")
+            try:
+                #sets collection to valid_update for update one method
+                valid_update = self.collection.update_one(query, {"$set": updateData})
+                
+                #if: verify update
+                if valid_update.matched_count == 0:
+                    return False #Nothing was matched to the query
+    
+                return True #update succesful
+            except Exception as e: #failed to update the data
+                print(f"Exception occurred while updating the document!: {e}")
+                return False
+            
+    #create delete method to implement D           
+    def delete(self, query):
+        
+        
+        """
+        method to delete entries in the MongoDB datase
+        return number of objects deleted in collection
+        """
+            
+        if not query:
+            #Query parameters was empty
+            raise Exception("No document found to delete.")
+            
+        #validate input
+        try:
+            #sets delete many method using the query
+            result = self.collection.delete_many(query)
+            #counts the number of deleted documents
+            return result.deleted_count
+        #the document failed to be deleted
+        except Exception as e:
+            print(f"Exception occurred while deleting document!: {e}")
+            return False
+        
+            
+            
